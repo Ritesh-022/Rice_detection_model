@@ -1,0 +1,10 @@
+{
+    "0": "broken_high",
+    "1": "broken_low",
+    "2": "discoloured_high",
+    "3": "discoloured_low",
+    "4": "healthy_large",
+    "5": "healthy_medium",
+    "6": "insect_infected",
+    "7": "unhulled"
+}
