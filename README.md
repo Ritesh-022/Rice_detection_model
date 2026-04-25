@@ -6,7 +6,7 @@ An end-to-end AI platform that analyses rice grain images and returns quality gr
 
 ## 1. Project Overview
 
-RiceAI accepts 1–5 rice grain photos, runs them through a three-stage computer-vision pipeline (YOLO segmentation → ResNet classification → health scoring), and produces a structured report with:
+RiceAI accepts 1–5 rice grain photos, runs them through a three-stage computer-vision pipeline (YOLO segmentation → EfficientNet-B0 classification → health scoring), and produces a structured report with:
 
 - Grain health score (0–100 %)
 - Quality grade (Premium Export / Local Market / Processing Grade / Animal Feed)
@@ -43,7 +43,7 @@ RiceAI accepts 1–5 rice grain photos, runs them through a three-stage computer
 ┌──────────────────┐      ┌──────────────────────────────────┐
 │   MongoDB        │      │   Flask ML Service  :5000         │
 │   rice_quality   │      │   YOLO segmentation               │
-│   AnalysisJob    │      │   ResNet classification           │
+│   AnalysisJob    │      │   EfficientNet-B0 classification  │
 └──────────────────┘      │   Health scoring                  │
                            │   LangGraph orchestration         │
                            │   LangChain + Ollama (LLaMA 3)   │
@@ -67,7 +67,7 @@ RiceAI accepts 1–5 rice grain photos, runs them through a three-stage computer
 |---|---|
 | Frontend | React 18, Vite 5, React Router 6, Recharts 2, i18next, Web Speech API |
 | Backend | Node.js, Express 4, Mongoose 8, Multer, Sharp, PDFKit, Nodemailer |
-| ML Service | Python, Flask, YOLOv8 (Ultralytics), PyTorch, ResNet, LangChain, LangGraph, Ollama (LLaMA 3) |
+| ML Service | Python, Flask, YOLOv8 (Ultralytics), PyTorch, EfficientNet-B0, LangChain, LangGraph, Ollama (LLaMA 3) |
 | Database | MongoDB (local) |
 | Security | Helmet, express-rate-limit, steganography detection, EXIF stripping, SHA-256 hashing |
 | DevOps | `start.bat` launcher, scheduled cleanup, graceful shutdown |
@@ -79,11 +79,11 @@ RiceAI accepts 1–5 rice grain photos, runs them through a three-stage computer
 ```
 Rice_Models/
 ├── ai_models/                   # Flask ML service
-│   ├── ml_service.py            # Single-file pipeline: YOLO + ResNet + LangGraph + Flask
+│   ├── ml_service.py            # Single-file pipeline: YOLO + EfficientNet-B0 + LangGraph + Flask
 │   ├── segmentation/
 │   │   └── segmentation.pt      # YOLOv8 grain detection model
 │   ├── recognization/
-│   │   ├── recognization.pth    # ResNet rice variety classifier
+│   │   ├── recognization.pth    # EfficientNet-B0 rice variety classifier
 │   │   └── recog_classes.json   # Variety label map
 │   └── health/
 │       ├── health.pth           # Health scoring model
@@ -137,7 +137,7 @@ Rice_Models/
 8. **Worker calls Flask** — `POST /predict` (single image) or `POST /batch` (multiple images).
 9. **Flask pipeline runs:**
    - YOLO detects and crops individual grains
-   - ResNet classifies each grain's variety
+   - EfficientNet-B0 classifies each grain's variety
    - Health model scores each grain
    - LangGraph orchestrates the full pipeline
    - Agmarknet API fetches live mandi price for the selected state
@@ -610,22 +610,4 @@ Navigate to `http://localhost:5173`
 - `usePoll` skips polling if `JobContext` already holds a completed result for the UUID
 - Scan history stored in localStorage — zero API calls on the Home page
 
----
 
-## 13. Additional Improvements
-
-**Suggested enhancements:**
-
-- **Authentication** — Add JWT-based auth so farmers can access their history across devices
-- **Redis queue** — Replace the in-memory queue with BullMQ + Redis for horizontal scaling and job persistence across restarts
-- **WebSocket / SSE** — Replace polling with Server-Sent Events for real-time status updates
-- **S3 storage** — Move uploads and PDFs to object storage; add pre-signed URL delivery
-- **Model versioning** — Track which model version produced each result in `AnalysisJob`
-- **Batch history** — Store per-image results in addition to the aggregate summary
-- **More languages** — i18n infrastructure is in place; add Tamil, Telugu, Bengali, Marathi
-- **Mobile app** — The API is fully REST; a React Native client could reuse all service logic
-- **Confidence calibration** — Surface per-grain confidence scores in the UI, not just the aggregate
-- **Offline mode** — Cache the last result in localStorage for field use without connectivity
-- **Admin dashboard** — Queue depth, job throughput, and model accuracy metrics via a `/admin` route
-- **Input validation** — Add Zod or Joi schema validation on all request bodies in the Node backend
-- **Test coverage** — Add Jest unit tests for `knapsack.js`, `normalise.js`, and `steganography.service.js`; Playwright E2E for the upload → result flow
